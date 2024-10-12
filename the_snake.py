@@ -11,7 +11,7 @@ GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
 SCORE_POSITION = (GRID_SIZE * 0.5, BOARD_HEIGTH)
 ISTRUCTION_POSITION = (GRID_SIZE * 0.5, BOARD_HEIGTH + GRID_SIZE * 0.5)
-SPEED_POSITION = (SCREEN_WIDTH - GRID_SIZE * 16, BOARD_HEIGTH)
+SPEED_POSITION = (SCREEN_WIDTH - GRID_SIZE * 15, BOARD_HEIGTH)
 
 
 # Направления движения:
@@ -152,7 +152,7 @@ def draw_score(font, score, speed, score_position, speed_position):
     """Функция отображающая счтет игры"""
     your_score = font.render(f'Ваш счёт: {score}', 1, SCORE_COLOR)
     screen.blit(your_score, score_position)
-    snake_speed = font.render(f'Скорость движения змейки: {speed / 10}',
+    snake_speed = font.render(f'Скорость движения змейки: {speed // 10}',
                               1, SCORE_COLOR)
     screen.blit(snake_speed, speed_position)
 
