@@ -9,6 +9,7 @@ HAT_HEIGTH = SCREEN_HEIGHT - BOARD_HEIGTH
 GRID_SIZE = 20
 GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
+MARGIN = 1
 SCORE_POSITION = (GRID_SIZE * 0.5, BOARD_HEIGTH)
 ISTRUCTION_POSITION = (GRID_SIZE * 0.5, BOARD_HEIGTH + GRID_SIZE * 0.5)
 SPEED_POSITION = (SCREEN_WIDTH - GRID_SIZE * 15, BOARD_HEIGTH)
@@ -21,13 +22,15 @@ LEFT = (-1, 0)
 RIGHT = (1, 0)
 
 # Цвета
-BOARD_BACKGROUND_COLOR = (215, 149, 105)
-BOARD_COLOR = (153, 255, 153)
+BOARD_BACKGROUND_COLOR = (73, 160, 22)
+BOARD_COLOR = (73, 176, 22)
+GRID_COLOR_1 = (140, 212, 79)
+GRID_COLOR_2 = (163, 212, 79)
 BORDER_COLOR = (93, 216, 228)
 APPLE_COLOR = (255, 0, 0)
 SNAKE_COLOR = (0, 128, 255)
-SCORE_COLOR = (30, 144, 255)
-INSTRUCTION_COLOR = (127, 0, 255)
+SCORE_COLOR = (255, 255, 255)
+INSTRUCTION_COLOR = (102, 51, 0)
 
 # Скорость движения змейки:
 speed = 10
@@ -88,13 +91,19 @@ class Apple(GameObject):
 
     def draw(self):
         """Метод отрисовки яблока на игровом поле."""
-        super().draw_rect(self.position, self.body_color)
+        apple_x, apple_y = self.position
+        pg.draw.line(screen, INSTRUCTION_COLOR, (apple_x + 10, apple_y + 10),
+                     (apple_x + 13, apple_y - 3), 2)
+        pg.draw.circle(screen, self.body_color,
+                       (apple_x + 10, apple_y + 10), 9)
 
     def randomize_position(self, positions):
         """Метод, отвечающий за определение местоположения яблока."""
         while self.position in positions:
-            self.position = (randrange(0, SCREEN_WIDTH, GRID_SIZE),
-                             randrange(0, BOARD_HEIGTH, GRID_SIZE))
+            self.position = (randrange(GRID_SIZE, SCREEN_WIDTH - GRID_SIZE,
+                                       GRID_SIZE),
+                             randrange(GRID_SIZE, BOARD_HEIGTH - GRID_SIZE,
+                                       GRID_SIZE))
 
 
 class Snake(GameObject):
@@ -132,9 +141,9 @@ class Snake(GameObject):
         for position in self.positions[1:]:
             super().draw_rect(position, self.body_color)
 
-        if self.last:
-            last_rect = pg.Rect(self.last, (GRID_SIZE, GRID_SIZE))
-            pg.draw.rect(screen, BOARD_COLOR, last_rect)
+        # if self.last:
+            # last_rect = pg.Rect(self.last, (GRID_SIZE, GRID_SIZE))
+            # pg.draw.rect(screen, BOARD_COLOR, last_rect)
 
     def get_head_position(self):
         """Метод, возвращающий позицию головы змейки."""
@@ -146,6 +155,22 @@ class Snake(GameObject):
         self.length = 1
         self.positions = []
         self.positions.append(head_position)
+
+
+def draw_board(color_1, color_2):
+    """Функция отрисовки игрового поля."""
+    for row in range(22):
+        for col in range(30):
+            if (row + col) % 2 == 0:
+                color = color_1
+            else:
+                color = color_2
+            pg.draw.rect(screen, color, [20 + col * GRID_SIZE,
+                                         20 + row * GRID_SIZE,
+                                         GRID_SIZE, GRID_SIZE])
+            pg.draw.rect(screen, BOARD_COLOR, [20 + col * GRID_SIZE,
+                                               20 + row * GRID_SIZE,
+                                               GRID_SIZE, GRID_SIZE], 1)
 
 
 def draw_score(font, score, speed, score_position, speed_position):
@@ -162,8 +187,7 @@ def draw_instruction(font, text, position):
     x_instruction, y_instruction = position
     for instruction in text:
         y_instruction += 20
-        instructions = font.render(instruction, 1, INSTRUCTION_COLOR,
-                                   BOARD_BACKGROUND_COLOR)
+        instructions = font.render(instruction, 1, INSTRUCTION_COLOR)
         screen.blit(instructions, (x_instruction, y_instruction))
 
 
@@ -195,7 +219,7 @@ def main():
 
     global score
     SCORE_FONT = pg.font.SysFont('comicsansms', 20)
-    INSTRUCTION_FONT = pg.font.SysFont('comicsansms', 15)
+    INSTRUCTION_FONT = pg.font.SysFont('comicsansms', 16)
 
     snake = Snake(SNAKE_COLOR)
     apple = Apple(APPLE_COLOR, snake.positions)
@@ -204,6 +228,7 @@ def main():
 
         screen.fill(BOARD_BACKGROUND_COLOR)
         pg.draw.rect(screen, BOARD_COLOR, board)
+        draw_board(GRID_COLOR_1, GRID_COLOR_2)
         draw_instruction(INSTRUCTION_FONT, game_instruction,
                          ISTRUCTION_POSITION)
 
@@ -222,9 +247,9 @@ def main():
             snake.length += 1
             score += 1
             apple.randomize_position(snake.positions)
-            snake.last = snake.positions[-1]
-        else:
-            snake.last = None
+            # snake.last = snake.positions[-1]
+        # else:
+            # snake.last = None
         if snake.get_head_position() in snake.positions[1:]:
             snake.reset()
             score = 0
