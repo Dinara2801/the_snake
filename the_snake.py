@@ -1,4 +1,4 @@
-from random import randrange
+from random import choice, randrange
 
 import pygame as pg
 
@@ -19,6 +19,7 @@ UP = (0, -1)
 DOWN = (0, 1)
 LEFT = (-1, 0)
 RIGHT = (1, 0)
+DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
 # Цвета
 BOARD_BACKGROUND_COLOR = (73, 160, 22)
@@ -34,6 +35,8 @@ INSTRUCTION_COLOR = (102, 51, 0)
 # Скорость движения змейки:
 speed = 10
 speed_delta = 10
+
+level = 5
 
 score = 0
 game_instruction = ['Добро пожаловать в игру \'Змейка\'!',
@@ -73,7 +76,7 @@ class GameObject:
         raise NotImplementedError(f'В классеse {self.__class__.__name__} '
                                   'не переопределен метод draw')
 
-    def draw_rect(self, position, body_color, frame_color=BORDER_COLOR):
+    def draw_rect(self, position, body_color, frame_color):
         """Метод отрисовки ячейки"""
         rect = pg.Rect(position, (GRID_SIZE, GRID_SIZE))
         pg.draw.rect(screen, body_color, rect)
@@ -140,10 +143,24 @@ class Snake(GameObject):
 
     def draw(self):
         """Метод, отвечающий за отрисовку змейки на игровом поле."""
-        self.draw_rect(self.get_head_position(), self.body_color)
+        # self.draw_rect(self.get_head_position(), self.body_color,
+        #                self.body_color)
+        head_x, head_y = self.get_head_position()
+        pg.draw.circle(screen, self.body_color,
+                       (head_x + 10, head_y + 10), 8)
+        if self.direction == RIGHT:
+            rect = pg.Rect(self.get_head_position(), (GRID_SIZE * 0.5, GRID_SIZE))
+        elif self.direction == UP:
+            rect = pg.Rect((head_x, head_y + 10), (GRID_SIZE, GRID_SIZE * 0.5))
+        elif self.direction == DOWN:
+            rect = pg.Rect((head_x, head_y), (GRID_SIZE, GRID_SIZE * 0.5))
+        else:
+            rect = pg.Rect((head_x + 10, head_y), (GRID_SIZE * 0.5, GRID_SIZE))
+        pg.draw.rect(screen, self.body_color, rect)
 
         for position in self.positions[1:]:
-            self.draw_rect(position, self.body_color)
+            self.draw_rect(position, self.body_color, self.body_color)
+
 
         if self.last:
             last_x, last_y = self.last
@@ -165,6 +182,7 @@ class Snake(GameObject):
         """Этот метод сбрасывает змейку в начальное состояние."""
         self.length = 1
         self.positions = [(SCREEN_WIDTH // 2, BOARD_HEIGHT // 2)]
+        self.direction = choice(DIRECTIONS)
         self.next_direction = None
         self.last = None
 
@@ -225,6 +243,14 @@ def handle_keys(game_object):
                 if speed <= speed_delta:
                     speed = speed_delta
                 return speed
+            elif event.key == pg.K_w:
+                level += 5
+                return level
+            elif event.key == pg.K_s:
+                level -= 5
+                if level <= 5:
+                    level = 5
+                return level
 
 
 def main():
@@ -243,6 +269,7 @@ def main():
     draw_board(GRID_COLOR_1, GRID_COLOR_2)
     draw_instruction(INSTRUCTION_FONT, game_instruction, ISTRUCTION_POSITION)
 
+    
     while True:
 
         clock.tick(speed)
@@ -256,7 +283,7 @@ def main():
             score += 1
             apple.randomize_position(snake.positions)
             # snake.last = snake.positions[-1]
-        elif snake.get_head_position() in snake.positions[1:]:
+        elif snake.get_head_position() in snake.positions[4:]:
             snake.reset()
             pg.draw.rect(screen, BOARD_COLOR, board)
             draw_board(GRID_COLOR_1, GRID_COLOR_2)
